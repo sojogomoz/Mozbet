@@ -1,7 +1,7 @@
 {
-  "name": "mozbet-backend",
+  "name": "so-jogo-moz",
   "version": "1.0.0",
-  "description": "Backend do site de apostas MozBet",
+  "description": "Backend do site Só Jogo Moz",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
