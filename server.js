@@ -16,7 +16,7 @@ mongoose.connect(process.env.MONGO_URI)
 
 // Rota principal
 app.get('/', (req, res) => {
-  res.send('MozBet backend está online!');
+  res.send('Backend do Só Jogo Moz está online!');
 });
 
 // Rota de ping (para manter online)
@@ -27,5 +27,5 @@ app.get('/ping', (req, res) => {
 // Porta dinâmica (necessária para funcionar no Glitch)
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
+  console.log(`Servidor do Só Jogo Moz rodando na porta ${PORT}`);
 });
