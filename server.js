@@ -1,8 +1,9 @@
-require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const User = require('./models/User');  // Importando o modelo de usuário
 const africastalking = require('africastalking');
 
 // Inicializando o app
@@ -45,6 +46,49 @@ app.post('/send-sms', (req, res) => {
     });
 });
 
+// Rota de cadastro de usuário
+app.post('/register', async (req, res) => {
+  const { nome, email, senha } = req.body;
+  
+  try {
+    // Verificar se o usuário já existe
+    const userExist = await User.findOne({ email });
+    if (userExist) {
+      return res.status(400).json({ success: false, message: 'Email já registrado' });
+    }
+    
+    // Criando o novo usuário
+    const user = new User({ nome, email, senha });
+    await user.save();
+    
+    res.json({ success: true, message: 'Usuário registrado com sucesso!' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Rota de login de usuário
+app.post('/login', async (req, res) => {
+  const { email, senha } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ success: false, message: 'Email ou senha inválidos' });
+    }
+    
+    const isMatch = await user.compareSenha(senha);
+    if (!isMatch) {
+      return res.status(400).json({ success: false, message: 'Email ou senha inválidos' });
+    }
+    
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    res.json({ success: true, token });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Rota principal
 app.get('/', (req, res) => {
   res.send('Só Jogo Moz backend está online!');
@@ -53,22 +97,6 @@ app.get('/', (req, res) => {
 // Rota de Ping (para manter o site online)
 app.get('/ping', (req, res) => {
   res.send('pong');
-});
-
-// Geração do token JWT (exemplo de login)
-app.post('/login', (req, res) => {
-  const { username, password } = req.body;
-  
-  // Aqui você deve verificar o usuário no banco de dados
-  // Para fins de exemplo, vamos considerar um usuário simples:
-  const user = { username: 'alex', password: 'senha' };
-
-  if (username === user.username && password === user.password) {
-    const token = jwt.sign({ username: user.username }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    res.json({ success: true, token });
-  } else {
-    res.status(401).json({ success: false, message: 'Credenciais inválidas' });
-  }
 });
 
 // Porta dinâmica (necessária para funcionar no Glitch)
