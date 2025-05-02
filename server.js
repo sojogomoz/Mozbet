@@ -14,9 +14,14 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB conectado com sucesso'))
   .catch((err) => console.error('Erro ao conectar ao MongoDB:', err));
 
-// Rota de teste
+// Rota principal
 app.get('/', (req, res) => {
   res.send('MozBet backend está online!');
+});
+
+// Rota de ping (para manter online)
+app.get('/ping', (req, res) => {
+  res.send('pong');
 });
 
 // Porta dinâmica (necessária para funcionar no Glitch)
