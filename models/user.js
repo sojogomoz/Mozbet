@@ -1,24 +1,33 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-// Definindo o esquema do usuário
-const userSchema = new mongoose.Schema({
-  nome: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  senha: { type: String, required: true },
-  dataRegistro: { type: Date, default: Date.now },
-});
+const UserSchema = new mongoose.Schema({
+  nome: {
+    type: String,
+    required: true
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true
+  },
+  senha: {
+    type: String,
+    required: true
+  }
+}, { timestamps: true });
 
-// Encriptando a senha antes de salvar o usuário
-userSchema.pre('save', async function(next) {
+// Criptografar senha antes de salvar
+UserSchema.pre('save', async function (next) {
   if (!this.isModified('senha')) return next();
-  this.senha = await bcrypt.hash(this.senha, 10);
+  const salt = await bcrypt.genSalt(10);
+  this.senha = await bcrypt.hash(this.senha, salt);
   next();
 });
 
-// Comparando senha
-userSchema.methods.compareSenha = function(senha) {
-  return bcrypt.compare(senha, this.senha);
+// Comparar senha
+UserSchema.methods.compareSenha = function (senhaDigitada) {
+  return bcrypt.compare(senhaDigitada, this.senha);
 };
 
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.model('User', UserSchema);
