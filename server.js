@@ -3,12 +3,15 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
 const africastalking = require('africastalking');
 
 // Modelos
 const User = require('./models/User');
 const Bet = require('./models/Bets');
+
+// Controladores
+const userController = require('./controllers/userController');
+const betController = require('./controllers/betController');
 
 const app = express();
 
@@ -53,70 +56,13 @@ app.post('/send-sms', (req, res) => {
     .catch(err => res.status(500).json({ success: false, error: err.message }));
 });
 
-// Registrar usuário
-app.post('/register', async (req, res) => {
-  const { nome, email, senha } = req.body;
-  try {
-    const exists = await User.findOne({ email });
-    if (exists) {
-      return res.status(400).json({ success: false, message: 'Email já existe' });
-    }
+// Rotas de usuário
+app.post('/register', userController.register);
+app.post('/login', userController.login);
 
-    const user = new User({ nome, email, senha });
-    await user.save();
-
-    res.json({ success: true, message: 'Usuário registrado com sucesso!' });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-
-// Login de usuário
-app.post('/login', async (req, res) => {
-  const { email, senha } = req.body;
-
-  try {
-    const user = await User.findOne({ email });
-    if (!user || !(await user.compareSenha(senha))) {
-      return res.status(400).json({ success: false, message: 'Email ou senha incorretos' });
-    }
-
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    res.json({ success: true, token });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-
-// Criar aposta
-app.post('/bet', async (req, res) => {
-  const { valor, escolha, token } = req.body;
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const userId = decoded.id;
-
-    const bet = new Bet({ userId, valor, escolha });
-    await bet.save();
-
-    res.json({ success: true, message: 'Aposta registrada!' });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-
-// Histórico de apostas
-app.get('/bets', async (req, res) => {
-  const { token } = req.query;
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const userId = decoded.id;
-
-    const bets = await Bet.find({ userId }).sort({ dataAposta: -1 });
-    res.json({ success: true, bets });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
+// Rotas de aposta
+app.post('/bet', betController.createBet);
+app.get('/bets', betController.getBets);
 
 // Porta
 const PORT = process.env.PORT || 3000;
