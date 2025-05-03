@@ -10,9 +10,6 @@ const africastalking = require('africastalking');
 const User = require('./models/User');
 const Bet = require('./models/Bets');
 
-// Middleware de autenticação
-const autenticar = require('./middlewares/auth');
-
 const app = express();
 
 // Middleware
@@ -92,11 +89,15 @@ app.post('/login', async (req, res) => {
 });
 
 // Criar aposta
-app.post('/bet', autenticar, async (req, res) => {
-  const { valor, escolha } = req.body;
+app.post('/bet', async (req, res) => {
+  const { valor, escolha, token } = req.body;
   try {
-    const bet = new Bet({ userId: req.userId, valor, escolha });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.id;
+
+    const bet = new Bet({ userId, valor, escolha });
     await bet.save();
+
     res.json({ success: true, message: 'Aposta registrada!' });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -104,9 +105,13 @@ app.post('/bet', autenticar, async (req, res) => {
 });
 
 // Histórico de apostas
-app.get('/bets', autenticar, async (req, res) => {
+app.get('/bets', async (req, res) => {
+  const { token } = req.query;
   try {
-    const bets = await Bet.find({ userId: req.userId }).sort({ dataAposta: -1 });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.id;
+
+    const bets = await Bet.find({ userId }).sort({ dataAposta: -1 });
     res.json({ success: true, bets });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
