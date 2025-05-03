@@ -7,7 +7,7 @@
     "start": "node server.js"
   },
   "engines": {
-    "node": "10.x"
+    "node": "14.x"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -16,6 +16,6 @@
     "mongoose": "^5.10.19",
     "jsonwebtoken": "^8.5.1",
     "bcryptjs": "^2.4.3",
-    "africastalking": "1.1.0"
+    "africastalking": "^1.2.0"
   }
 }
